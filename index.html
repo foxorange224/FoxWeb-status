@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoxWeb Network Status</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #0d1117;
+            color: #c9d1d9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            width: 100%;
+            max-width: 500px;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        h1 {
+            color: #f08a24;
+            font-size: 2.2rem;
+            margin-bottom: 5px;
+            text-align: center;
+        }
+        .subtitle {
+            color: #8b949e;
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .status-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .service-item {
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .service-name {
+            font-weight: bold;
+            font-size: 1.05rem;
+        }
+        .service-status {
+            font-size: 0.95rem;
+            font-weight: bold;
+            transition: color 0.3s ease;
+        }
+        .online { color: #3fb950; }
+        .offline { color: #f85149; }
+        .checking { color: #8b949e; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>FoxWeb Network Status</h1>
+        <div class="subtitle">Estado de los servicios en tiempo real</div>
+
+        <div class="status-list">
+            <div class="service-item">
+                <span class="service-name">FoxWeb Principal</span>
+                <span id="status-main" class="service-status checking">● Verificando...</span>
+            </div>
+
+            <div class="service-item">
+                <span class="service-name">FoxWeb Database</span>
+                <span id="status-db" class="service-status checking">● Verificando...</span>
+            </div>
+
+            <div class="service-item">
+                <span class="service-name">FoxWeb Chat</span>
+                <span id="status-chat" class="service-status checking">● Verificando...</span>
+            </div>
+
+            <div class="service-item">
+                <span class="service-name">MediaFire</span>
+                <span id="status-mediafire" class="service-status checking">● Verificando...</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function pingService(elementId, url) {
+            const statusElement = document.getElementById(elementId);
+            const separator = url.includes('?') ? '&' : '?';
+            const targetUrl = url + separator + 't=' + Date.now();
+
+            const startTime = performance.now();
+
+            try {
+                const response = await fetch(targetUrl, { method: 'HEAD', mode: 'no-cors', cache: 'no-store' });
+
+                const endTime = performance.now();
+                const ping = Math.round(endTime - startTime);
+
+                statusElement.className = "service-status online";
+                statusElement.innerHTML = `● En línea - ${ping} ms`;
+            } catch (error) {
+                statusElement.className = "service-status offline";
+                statusElement.innerHTML = "● Desconectado";
+            }
+        }
+
+        function updateAllStatuses() {
+            pingService('status-main', 'https://foxweb.qzz.io');
+            pingService('status-db', 'https://database.foxweb.qzz.io');
+            pingService('status-chat', 'https://chat.foxweb.qzz.io');
+            pingService('status-mediafire', 'https://www.mediafire.com');
+        }
+
+        // Carga inicial
+        updateAllStatuses();
+
+        // Actualización automática cada 2 segundos
+        setInterval(updateAllStatuses, 2000);
+    </script>
+
+</body>
+</html>
